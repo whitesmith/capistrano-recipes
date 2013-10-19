@@ -1,0 +1,5 @@
+check process sidekiq
+  with pidfile <%= sidekiq_pid %>
+  start program = "/usr/bin/sudo -H -u <%= user %> /bin/bash -l -c 'cd <%= current_path %> ; bundle exec sidekiq -e production -C <%= shared_path %>/config/sidekiq.yml -P <%=shared_path%>/pids/sidekiq.pid -L <%=shared_path%>/log/sidekiq.log -d'" with timeout 90 seconds
+  stop program = "/bin/sh -c 'cd <%= current_path %> && kill -s INT `cat <%=shared_path%>/pids/sidekiq.pid` && rm -f <%=shared_path%>/pids/sidekiq.pid; exit 0;'" with timeout 90 seconds
+  if totalmem is greater than 200 MB for 2 cycles then restart

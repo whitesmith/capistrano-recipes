@@ -1,0 +1,7 @@
+check process memcached with pidfile <%= memcached_pid_file %>
+    start program = "/usr/bin/memcached -d -P <%= memcached_pid_file %> -u root -m 512 -l 127.0.0.1 -p <%= memcached_port %>"
+    stop program = "/bin/kill -9 `cat /var/run/memcached.pid`; rm /var/run/memcached.pid"
+    if failed host 127.0.0.1 port <%= memcached_port %> then restart
+    if cpu > 60% for 2 cycles then alert
+    if cpu > 98% for 5 cycles then restart
+    if 2 restarts within 3 cycles then timeout

@@ -1,0 +1,5 @@
+check process faye_<%= application %> with pidfile <%= faye_pid %>
+  start program "/etc/init.d/faye_<%= application %> start"
+  stop program  "/etc/init.d/faye_<%= application %> stop"
+  if failed port 9292 then restart
+  if 5 restarts within 5 cycles then timeout

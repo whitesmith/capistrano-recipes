@@ -1,0 +1,5 @@
+check process fnordmetric with pidfile <%= fnordmetric_pid %>
+  start program = "/bin/su - <%= user %> -c 'cd <%= current_path%> && (bundle exec ruby <%= fnordmetric_script %> RAILS_ENV=production > <%= shared_path %>/log/fnordmetric.log >/dev/null 2>&1 &) && sleep 1'"
+  stop program = "/usr/bin/test -s <%= fnordmetric_pid %> /bin/kill -QUIT `cat <%= fnordmetric_pid %>`"
+  if failed host 127.0.0.1 port 4242 then restart
+  if 5 restarts within 5 cycles then timeout

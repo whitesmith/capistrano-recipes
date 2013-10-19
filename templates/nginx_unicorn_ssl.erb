@@ -1,0 +1,97 @@
+upstream unicorn {
+  server unix:/tmp/unicorn.<%= application %>.sock fail_timeout=0;
+}
+
+server {
+        listen 80;
+        server_name  <%= domain %>;
+        rewrite ^(.*) https://$host$1 permanent;
+}
+
+server {
+        listen 443;
+        ssl on;
+        server_name  www.<%= domain %>;
+
+        ssl_certificate /etc/nginx/ssl/ssl-bundle.crt;
+        ssl_certificate_key /etc/nginx/ssl/ssl-key.pem;
+
+        rewrite ^(.*) https://<%= domain %>$1 permanent;
+}
+
+server {
+  listen 443;
+  ssl on;
+  server_name <%= domain %>;
+
+  ssl_certificate /etc/nginx/ssl/ssl-bundle.crt;
+  ssl_certificate_key /etc/nginx/ssl/ssl-key.pem;
+
+  root <%= current_path %>/public;
+
+  # Sentry hack to correctly load media
+  rewrite ^(/_static/)(.*)$ /sentry/_static/$2 permanent;
+
+  set $maintenance_mode 0;
+  if (-f $document_root/system/maintenance.html) {
+    set $maintenance_mode 1;
+  }
+  if ($uri ~ .(png|jpg|jpeg|gif|js|css|otf)$) {
+    set $maintenance_mode 0;
+  }
+  if ($maintenance_mode = 1){
+    return 503;
+  }
+
+  error_page 503 @maintenance;
+  location @maintenance {
+    rewrite  ^(.*)$  /system/maintenance.html last;
+    break;
+  }
+
+  location /monit/ { # If using monit
+    rewrite ^/monit/(.*) /$1 break;
+    proxy_pass http://127.0.0.1:2812;
+    proxy_set_header Host $host;
+  }
+
+  location /sentry { # If using Sentry
+       rewrite /sentry/(.*) /$1 break;
+       proxy_pass http://localhost:9000/sentry/;
+       proxy_set_header Host $host;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+
+  location /faye/ { # If using Faye
+      proxy_pass http://127.0.0.1:9292;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+
+      proxy_redirect off;
+  }
+
+  location ^~ /assets/ {
+    gzip_static on;
+    expires max;
+    add_header Cache-Control public;
+  }
+
+  try_files $uri/index.html $uri @unicorn;
+  location @unicorn {
+    proxy_set_header  X-Real-IP       $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header  X-Forwarded-Proto https;
+    proxy_set_header Host $http_host;
+    proxy_redirect off;
+    proxy_pass http://unicorn;
+  }
+
+  error_page 500 502 503 504 /500.html;
+  client_max_body_size 4G;
+  keepalive_timeout 10;
+}

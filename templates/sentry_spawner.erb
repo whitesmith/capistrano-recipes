@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -e . <%= virtualenv_dir %>/bin/activate
+
+/usr/local/bin/sentry --config=<%= sentry_config %>  start -w <%= sentry_workers %> 2>&1

@@ -1,0 +1,10 @@
+#   sidekiq -C config.yml
+---
+:verbose: false
+:pidfile: <%= sidekiq_pid %>
+:concurrency:  <%= sidekiq_concurrency %>
+:queues:
+  - [mailer, 7]
+  - [high, 6]
+  - [default, 5]
+  - [seldom, 3]
