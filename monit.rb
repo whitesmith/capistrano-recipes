@@ -8,27 +8,29 @@ namespace :monit do
   desc "Setup all Monit configuration"
   task :setup do
     monit_config "monitrc", "/etc/monit/monitrc"
-    nginx
-    postgresql
-    unicorn
-    redis
-    sidekiq
-    tcp_proxy
-    sentry
-    faye
+    # nginx
+    # postgresql
+    # unicorn
+    # redis
+    # sidekiq
+    # tcp_proxy
+    # sentry
+    # faye
+    # ... and other dependencies you may be using ...
     syntax
     reload
   end
   after "deploy:setup", "monit:setup"
 
-  task(:nginx, roles: :web) { monit_config "nginx" }
-  task(:postgresql, roles: :db) { monit_config "postgresql" }
-  task(:unicorn, roles: :app) { monit_config "unicorn" }
-  task(:redis, roles: :app) { monit_config "redis" }
-  task(:sidekiq, roles: :app) { monit_config "sidekiq" }
-  task(:tcp_proxy, roles: :app) { monit_config "tcp_proxy" }
-  task(:sentry, roles: :app) { monit_config "sentry" }
-  task(:faye, roles: :app) { monit_config "faye" }
+  # task(:nginx, roles: :web) { monit_config "nginx" }
+  # task(:postgresql, roles: :db) { monit_config "postgresql" }
+  # task(:unicorn, roles: :app) { monit_config "unicorn" }
+  # task(:redis, roles: :app) { monit_config "redis" }
+  # task(:sidekiq, roles: :app) { monit_config "sidekiq" }
+  # task(:tcp_proxy, roles: :app) { monit_config "tcp_proxy" }
+  # task(:sentry, roles: :app) { monit_config "sentry" }
+  # task(:faye, roles: :app) { monit_config "faye" }
+  # ... and other dependencies you may be using ...
 
   %w[start stop restart syntax reload].each do |command|
     desc "Run Monit #{command} script"
