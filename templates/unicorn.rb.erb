@@ -8,6 +8,8 @@ worker_processes <%= unicorn_workers %>
 timeout 30
 
 preload_app true
+#  More info on http://unicorn.bogomips.org/Sandbox.html
+Unicorn::HttpServer::START_CTX[0] = "<%= current_path %>/bin/unicorn"
 
 before_exec do |server|
   # reload Gemfile
@@ -39,9 +41,5 @@ after_fork do |server, worker|
   if Process.ppid > 1 # Not the daemon
     child_pid = server.config[:pid].sub('.pid', ".#{worker.nr}.pid")
     File.open(child_pid, "wb") {|f| f << Process.pid }
-  end
-
-  Sidekiq.configure_client do |config|
-    config.redis = { :size => 1 }
   end
 end
